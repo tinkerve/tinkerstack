@@ -155,7 +155,10 @@ export class GraphQLAnnotatedSchemaLoader {
         throw new Error(
           `Failed to load ${failed.length} schema(s) from sources.`,
         );
-      else this._logger.warn(`Failed to load ${failed.length}, ignoring.`);
+      else
+        this._logger.warn(
+          `Failed to load ${failed.length} schema(s) from sources.`,
+        );
     }
 
     return loaded.map((l) => l.value);

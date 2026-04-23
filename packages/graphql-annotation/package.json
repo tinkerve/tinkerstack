@@ -1,6 +1,6 @@
 {
   "name": "@tinkerstack/graphql-annotation",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Better type-safe-able graphql directives",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
