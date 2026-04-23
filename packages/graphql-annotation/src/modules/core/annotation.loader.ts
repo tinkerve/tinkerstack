@@ -149,7 +149,7 @@ export class GraphQLAnnotatedSchemaLoader {
       (q) => q.status === "fulfilled",
     );
 
-    const shouldThrow = opts?.ignoreMissingSources ?? true;
+    const shouldThrow = !(opts?.ignoreMissingSources ?? false);
     if (failed.length > 0) {
       if (shouldThrow)
         throw new Error(
