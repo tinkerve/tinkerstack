@@ -46,8 +46,13 @@ export class GraphQLAnnotatedSchemaLoader {
     private readonly externalContextCreator: ExternalContextCreator,
   ) {}
 
-  public async load(sources: AnnotationSchemaSources) {
-    const loadedSources = await this.batchLoadSources(sources);
+  public async load(
+    sources: AnnotationSchemaSources,
+    opts?: { ignoreMissingSources?: boolean },
+  ) {
+    const loadedSources = await this.batchLoadSources(sources, {
+      ignoreMissingSources: opts?.ignoreMissingSources ?? false,
+    });
 
     const schema = stitchSchemas({
       subschemas: loadedSources.map((s) => s.subschema),
@@ -108,7 +113,10 @@ export class GraphQLAnnotatedSchemaLoader {
     return annotationResolvers;
   }
 
-  private async batchLoadSources(sources: AnnotationSchemaSources) {
+  private async batchLoadSources(
+    sources: AnnotationSchemaSources,
+    opts?: { ignoreMissingSources?: boolean },
+  ) {
     const pending = Object.entries(sources).map(async ([name, url]) => {
       const loadId = `${name}@${url}`;
       try {
@@ -140,10 +148,15 @@ export class GraphQLAnnotatedSchemaLoader {
       await Promise.allSettled(pending),
       (q) => q.status === "fulfilled",
     );
-    if (failed.length > 0)
-      throw new Error(
-        `Failed to load ${failed.length} schema(s) from sources.`,
-      );
+
+    const shouldThrow = opts?.ignoreMissingSources ?? true;
+    if (failed.length > 0) {
+      if (shouldThrow)
+        throw new Error(
+          `Failed to load ${failed.length} schema(s) from sources.`,
+        );
+      else this._logger.warn(`Failed to load ${failed.length}, ignoring.`);
+    }
 
     return loaded.map((l) => l.value);
   }
