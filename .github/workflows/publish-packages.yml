@@ -29,6 +29,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Update NPM
+        run: npm install -g npm@latest
+
       - name: Initialize pnpm
         uses: pnpm/action-setup@v4
 
@@ -42,7 +45,7 @@ jobs:
         run: pnpm install
 
       - name: "Publish to NPM"
-        run: pnpm -r publish --no-git-checks --access=public
+        run: pnpm -r publish --no-git-checks --access=public --provenance
         # Should use OIDC but I tried man, nothing is working
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
