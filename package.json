@@ -7,7 +7,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "publish": "pnpm -r publish --access public --no-git-checks"
+    "publish-all": "pnpm -r publish --access public --no-git-checks"
   },
   "keywords": [
     "tinkerstack",
