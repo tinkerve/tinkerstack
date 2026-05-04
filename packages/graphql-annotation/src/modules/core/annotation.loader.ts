@@ -140,6 +140,7 @@ export class GraphQLAnnotatedSchemaLoader {
         return loaded;
       } catch (err) {
         this._logger.error(`Unable to load schema for ${loadId}`);
+        this._logger.error(err);
         throw err;
       }
     });
@@ -184,6 +185,7 @@ export class GraphQLAnnotatedSchemaLoader {
       return res.data[ANNOTATION_QUERY_NAME];
     } catch (err) {
       this._logger.warn(`Failed to load annotations at ${url}, assuming empty`);
+      this._logger.warn(err);
       return {} as GraphQLAnnotationMeta;
     }
   }
