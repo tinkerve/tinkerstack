@@ -20,6 +20,7 @@ import {
   ANNOTATION_RESOLVER_METADATA,
   AnnotationResolverMetadata,
   AnnotationSchemaSources,
+  GraphQLResolversAnnotations,
   ResolverName,
 } from "./annotation.constants";
 import {
@@ -27,12 +28,7 @@ import {
   GraphQLAnnotationMeta,
   GraphQLAnnotationResolver,
 } from "./annotation.resolver";
-import {
-  isPlainObject,
-  loadGraphQLSchema,
-  shallowMerge,
-  split,
-} from "./annotation.utils";
+import { isPlainObject, loadGraphQLSchema, split } from "./annotation.utils";
 import { ResolverDiscoveryService } from "./resolver.explorer";
 import { instanceToPlain } from "class-transformer";
 
@@ -57,9 +53,24 @@ export class GraphQLAnnotatedSchemaLoader {
     const schema = stitchSchemas({
       subschemas: loadedSources.map((s) => s.subschema),
     });
-    const annotations = shallowMerge(
-      loadedSources.map((s) => s.annotation),
-    ) as GraphQLAnnotationMeta;
+    // Deep-merge each source's `resolvers` map. A shallow merge of the whole
+    // annotation objects lets a later source's `resolvers` clobber earlier ones
+    // wholesale — silently dropping every annotation (e.g. session injection)
+    // from all but the last-loaded sub-gateway. Merge per field-name instead so
+    // every stitched sub-gateway keeps its annotations.
+    const annotations = {
+      name: loadedSources
+        .map((s) => s.annotation?.name)
+        .filter(Boolean)
+        .join(","),
+      resolvers: loadedSources.reduce((acc, s) => {
+        for (const [field, infos] of Object.entries(
+          s.annotation?.resolvers ?? {},
+        ))
+          acc[field] = acc[field] ? [...acc[field], ...infos] : infos;
+        return acc;
+      }, {} as GraphQLResolversAnnotations),
+    } satisfies GraphQLAnnotationMeta;
     const annotationResolvers = await this.discoverAnnotationResolvers();
 
     return this.embedAnnotationResolversToSchema(
